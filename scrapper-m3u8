@@ -1,0 +1,31 @@
+import requests
+from bs4 import BeautifulSoup
+import re
+
+def scrape_m3u8_links(url):
+    response = requests.get(url)
+
+    m3u8_pattern = r'(https?://[^\s]+\.m3u8)'
+    m3u8_links = re.findall(m3u8_pattern, response.text)
+
+    return m3u8_links
+
+def crawl_website(url):
+    response = requests.get(url)
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    anchor_tags = soup.find_all('plyr__video-wrapper')
+
+    all_m3u8_links = []
+    for tag in anchor_tags:
+        href = tag.get('href')
+        if href and href.startswith('http'):
+            m3u8_links = scrape_m3u8_links(href)
+            all_m3u8_links.extend(m3u8_links)
+
+    return all_m3u8_links
+
+website_url = 'https://apa.com/'
+m3u8_links = crawl_website(website_url)
+print(m3u8_links)
